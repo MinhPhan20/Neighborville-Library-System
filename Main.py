@@ -25,15 +25,49 @@ database_pool = pooling.MySQLConnectionPool(
 def get_database_connection():
     return database_pool.get_connection()
 
-def checkout_book(book_id: int, user_id: int):
+def checkout_book(book_id: int = Form(...), user_id: int = Form(...), employee_id: int = Form(...)):
+    connection = get_database_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("INSERT INTO CHECKOUTS (CHECKOUT_DATE, MEMBER_ID, EMPLOYEE_EMP_ID) VALUES (NOW(), %s, %s)", (user_id, employee_id))
+
+    except Exception as e:
+        cursor.rollback()
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
+
+#CHECKOUT_ID, CHECKOUT_DATE, MEMBER_ID, EMPLOYEE_EMP_ID
+
+#CHECKOUT_ID, COPY_ID, CHECKOUT_ITEM_DUEDATE
+def return_book(book_id: int = Form(...), user_id: int = Form(...)):
+    
     pass
 
-def return_book(book_id: int, user_id: int):
-    pass
+def search_books(title: str = Form(...)):
+    connection = get_database_connection()
+    cursor = connection.cursor()
 
-def search_books(query: str):
-    pass
+    try:
+        cursor.execute("SELECT * FROM BOOKS WHERE TITLE LIKE %s", (f"%{title}%",))
+        results = cursor.fetchall()
+        return results
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
 
-def place_hold(book_id: int, user_id: int):
-    pass
+def place_hold(title_id: int = Form(...), user_id: int = Form(...)):
+    connection = get_database_connection()
+    cursor = connection.cursor()
 
+    try:
+        cursor.execute("INSERT INTO HOLDS (TITLE_ID, MEMBER_ID, HOLD_DATE) VALUES (%s, %s, NOW())", (title_id, user_id))
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
+    pass
