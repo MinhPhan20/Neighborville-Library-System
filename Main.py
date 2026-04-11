@@ -6,6 +6,8 @@ from fastapi.responses import RedirectResponse
 from mysql.connector import pooling
 from dotenv import load_dotenv
 
+checkoutBooks = [] #global array to hold books being checked out until checkout is processed
+
 load_dotenv()
 
 application = FastAPI(title = "Neightborville Public Library")
@@ -14,7 +16,7 @@ application.mount("/static", StaticFiles(directory="static"), name="static")
 
 #connection pool initialization
 database_pool = pooling.MySQLConnectionPool(
-   pool_name = "NLibraryPool",
+    pool_name = "NLibraryPool",
     pool_size = 10,
     host = os.getenv('DB_HOST'),
     user = os.getenv('DB_USER'),
@@ -25,12 +27,13 @@ database_pool = pooling.MySQLConnectionPool(
 def get_database_connection():
     return database_pool.get_connection()
 
-def checkout_book(book_id: int = Form(...), user_id: int = Form(...), employee_id: int = Form(...)):
-    connection = get_database_connection()
+#=================================================book checkout functions=================================================
+
+def create_checkout(member_id: int = Form(...), employee_id: int = Form(...)):
+    connection = get_database_connection
     cursor = connection.cursor()
     try:
-        cursor.execute("INSERT INTO CHECKOUTS (CHECKOUT_DATE, MEMBER_ID, EMPLOYEE_EMP_ID) VALUES (NOW(), %s, %s)", (user_id, employee_id))
-
+        cursor.execute("INSERT INTO CHECKOUTS (CHECKOUT_DATE, MEMBER_ID, EMPLOYEE_EMP_ID) VALUES (NOW(), %s, %s)", (member_id, employee_id))
     except Exception as e:
         cursor.rollback()
         print(f"Error: {e}")
@@ -38,12 +41,48 @@ def checkout_book(book_id: int = Form(...), user_id: int = Form(...), employee_i
         cursor.close()
         connection.close()
 
-#CHECKOUT_ID, CHECKOUT_DATE, MEMBER_ID, EMPLOYEE_EMP_ID
+def process_checkouts():
+    connection = get_database_connection()
+    cursor = connection.cursor()
+    try:
+        #add all checkout items to the checkout_items table in the DB
+        pass
 
-#CHECKOUT_ID, COPY_ID, CHECKOUT_ITEM_DUEDATE
-def return_book(book_id: int = Form(...), user_id: int = Form(...)):
-    
+    except Exception as e:
+        cursor.rollback()
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
     pass
+
+def add_to_checkout(book_id: int = Form(...), checkout_id: int = Form(...)):
+    connection = get_database_connection()
+    cursor = connection.cursor()
+    try:
+        #add checkout_item to array of checkout items for the checkout
+        pass
+    except Exception as e:
+        cursor.rollback()
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
+
+def return_book(book_id: int = Form(...), user_id: int = Form(...)):
+    connection = get_database_connection()
+    cursor = connection.cursor()
+    
+    try:
+        cursor.execute("UPDATE CHECKOUTS SET RETURN_DATE = NOW() WHERE MEMBER_ID = %s AND CHECKOUT_ID IN (SELECT CHECKOUT_ID FROM CHECKOUT_ITEMS WHERE COPY_ID = %s AND RETURN_DATE IS NULL)", (user_id, book_id))
+    except Exception as e:
+        cursor.rollback()
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
+    pass
+#================================================================checkout functions end=================================================
 
 def search_books(title: str = Form(...)):
     connection = get_database_connection()
