@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neighborville Public Library</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        h2 { color: #2c3e50; margin-bottom: 20px; }
+        select, input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>Library Login</h2>
+        
+        <select id="roleSelect">
+            <option value="member">Library Member</option>
+            <option value="librarian">Librarian / Manager</option>
+        </select>
+
+        <input type="text" id="userId" placeholder="Enter ID Number" required>
+
+        <button onclick="handleLogin()">Login</button>
+    </div>
+
+    <script>
+        function handleLogin() {
+            const role = document.getElementById('roleSelect').value;
+            const userId = document.getElementById('userId').value;
+
+            if (!userId) {
+                alert("Please enter an ID number.");
+                return;
+            }
+
+            // Route the user to the correct dashboard based on their dropdown choice
+            if (role === 'member') {
+                window.location.href = `member.html?id=${userId}`;
+            } else {
+                window.location.href = `staff.html?id=${userId}`;
+            }
+        }
+    </script>
+
+</body>
+</html>

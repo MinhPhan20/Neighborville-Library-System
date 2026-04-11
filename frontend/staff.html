@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Control Center</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; color: #2c3e50; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-top: 4px solid #3498db; }
+        h3 { color: #2c3e50; margin-top: 0; }
+        label { font-size: 14px; color: #555; display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button.delete-btn { background-color: #e74c3c; }
+        button.delete-btn:hover { background-color: #c0392b; }
+        button.update-btn { background-color: #2ecc71; }
+        button.update-btn:hover { background-color: #27ae60; }
+        button:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Staff Control Center</h1>
+        <p>Logged in as Librarian ID: <span id="staffIdDisplay"></span></p>
+    </div>
+
+    <div class="dashboard-grid">
+        
+        <div class="card">
+            <h3>Add New Member</h3>
+            <label>Member Name</label>
+            <input type="text" id="newMemberName" placeholder="e.g., Bruce Wayne">
+            <button onclick="createMember()">Create Member</button>
+            <p id="createMsg" style="font-size: 12px; color: green; margin-top: 10px;"></p>
+        </div>
+
+        <div class="card" style="border-top-color: #2ecc71;">
+            <h3>Update Fee Status</h3>
+            <label>Fee ID</label>
+            <input type="number" id="feeId" placeholder="e.g., 401">
+            <label>New Status</label>
+            <input type="text" id="feeStatus" placeholder="e.g., Paid">
+            <button class="update-btn" onclick="updateFee()">Update Status</button>
+            <p id="updateMsg" style="font-size: 12px; color: green; margin-top: 10px;"></p>
+        </div>
+
+        <div class="card" style="border-top-color: #e74c3c;">
+            <h3>Remove Lost Book Copy</h3>
+            <label>Copy ID</label>
+            <input type="number" id="copyId" placeholder="e.g., 302">
+            <button class="delete-btn" onclick="deleteBook()">Delete Copy</button>
+            <p id="deleteMsg" style="font-size: 12px; color: red; margin-top: 10px;"></p>
+        </div>
+
+    </div>
+
+    <script>
+        // Grab the ID from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('staffIdDisplay').innerText = urlParams.get('id') || "Admin";
+
+        // Placeholder functions for the backend API calls
+        function createMember() {
+            document.getElementById('createMsg').innerText = "Simulating: Sending new member to Python backend...";
+        }
+
+        function updateFee() {
+            document.getElementById('updateMsg').innerText = "Simulating: Updating fee status in database...";
+        }
+
+        function deleteBook() {
+            document.getElementById('deleteMsg').innerText = "Simulating: Deleting copy from database...";
+        }
+    </script>
+
+</body>
+</html>

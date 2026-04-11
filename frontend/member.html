@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1, h2 { color: #2c3e50; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 30px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #2980b9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #ecf0f1; color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome, Member ID: <span id="displayId"></span></h1>
+
+        <h2>Search Catalog</h2>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search for a book title or author...">
+            <button onclick="searchBooks()">Search</button>
+        </div>
+        <p id="searchMessage" style="color: #7f8c8d; font-style: italic;"></p>
+
+        <h2>My Checked Out Books</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Book Title</th>
+                    <th>Due Date</th>
+                </tr>
+            </thead>
+            <tbody id="checkoutTable">
+                <tr>
+                    <td colspan="2" style="text-align: center; color: #7f8c8d;">Waiting for backend connection...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // This clever bit of JS grabs the ID number from the web address bar
+        // so you know exactly who just logged in!
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id');
+        document.getElementById('displayId').innerText = userId || "Guest";
+
+        function searchBooks() {
+            const query = document.getElementById('searchInput').value;
+            // For now, it just prints a message. Later, this will fetch() data from Jesus's Python API!
+            document.getElementById('searchMessage').innerText = `Searching database for: "${query}"...`;
+        }
+    </script>
+
+</body>
+</html>
