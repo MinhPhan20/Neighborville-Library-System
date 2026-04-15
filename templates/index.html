@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neighborville Library Manager Login</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="page">
+        <div class="container">
+            <div class="hero">
+                <h1>Neighborville Public Library</h1>
+                <p>Manager access for catalog control, circulation management, and reporting.</p>
+            </div>
+
+            <div class="login-wrap">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Login</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if error %}
+                        <div style="background-color: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-weight: bold;">
+                            Invalid username or password. Please try again.
+                        </div>
+                        {% endif %}
+
+                        <form method="POST" action="/login" class="form-grid">
+                            <div>
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" placeholder="Enter manager username" autocomplete="username" required>
+                            </div>
+
+                            <div>
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+                            </div>
+
+                            <button type="submit">Login</button>
+                        </form>
+
+                        <p class="message">Authorized staff only.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

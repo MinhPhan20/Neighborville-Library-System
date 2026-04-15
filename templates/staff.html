@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Control Center</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .nav-bar {
+            background: var(--surface);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-links a {
+            margin-left: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-home {
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+            .btn-home:hover {
+                background: var(--primary);
+                color: white;
+            }
+
+        .btn-logout {
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+            .btn-logout:hover {
+                background: var(--danger);
+                color: white;
+            }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="container">
+
+            <div class="nav-bar">
+                <div style="font-size: 1.2rem; font-weight: 800; color: var(--text);">Staff Control Center</div>
+                <div class="nav-links">
+                    <span class="badge" style="margin-right: 10px;">ID: {{ user_id or "Admin" }}</span>
+                    <a href="/" class="btn-home">Home</a>
+                    <a href="/logout" class="btn-logout">Logout</a>
+                </div>
+            </div>
+
+            <div class="grid grid-3">
+                <div class="card"><div class="card-header"><h3>Create Publisher</h3></div><div class="card-body"><div class="form-grid"><input type="text" id="publisherName" placeholder="Publisher Name"><button onclick="createPublisher()">Create</button><p id="publisherMsg" class="message"></p></div></div></div>
+                <div class="card"><div class="card-header"><h3>Create Author</h3></div><div class="card-body"><div class="form-grid"><input type="text" id="authorName" placeholder="Author Name"><button onclick="createAuthor()">Create</button><p id="authorMsg" class="message"></p></div></div></div>
+                <div class="card"><div class="card-header"><h3>Create Book Title</h3></div><div class="card-body"><div class="form-grid"><input type="text" id="titleName" placeholder="Title Name"><input type="number" id="publisherId" placeholder="Publisher ID"><input type="text" id="genre" placeholder="Genre"><input type="text" id="edition" placeholder="Edition"><input type="number" id="publicationYear" placeholder="Publication Year"><button class="btn-success" onclick="createBookTitle()">Create</button><p id="titleMsg" class="message"></p></div></div></div>
+                <div class="card"><div class="card-header"><h3>Create Book Copy</h3></div><div class="card-body"><div class="form-grid"><input type="number" id="copyIsbn" placeholder="Copy ISBN"><input type="number" id="copyTitleId" placeholder="Title ID"><input type="text" id="shelfLocation" placeholder="Shelf Location"><button class="btn-success" onclick="createBookCopy()">Create</button><p id="copyMsg" class="message"></p></div></div></div>
+                <div class="card"><div class="card-header"><h3>Create Checkout</h3></div><div class="card-body"><div class="form-grid"><input type="number" id="checkoutMemberId" placeholder="Member ID"><input type="number" id="checkoutEmpId" placeholder="Employee ID"><button class="btn-warning" onclick="createCheckout()">Create</button><p id="checkoutMsg" class="message"></p></div></div></div>
+                <div class="card"><div class="card-header"><h3>Add Checkout Item</h3></div><div class="card-body"><div class="form-grid"><input type="number" id="checkoutId" placeholder="Checkout ID"><input type="number" id="checkoutCopyId" placeholder="Copy ID"><input type="date" id="checkoutDueDate"><button class="btn-warning" onclick="createCheckoutItem()">Add</button><p id="checkoutItemMsg" class="message"></p></div></div></div>
+                <div class="card"><div class="card-header"><h3>Return Item</h3></div><div class="card-body"><div class="form-grid"><input type="number" id="returnCheckoutId" placeholder="Checkout ID"><input type="number" id="returnCopyId" placeholder="Copy ID"><button class="btn-success" onclick="returnCheckoutItem()">Return</button><p id="returnMsg" class="message"></p></div></div></div>
+                <div class="card"><div class="card-header"><h3>Renew Item</h3></div><div class="card-body"><div class="form-grid"><input type="number" id="renewCheckoutId" placeholder="Checkout ID"><input type="number" id="renewCopyId" placeholder="Copy ID"><button onclick="renewCheckoutItem()">Renew</button><p id="renewMsg" class="message"></p></div></div></div>
+            </div>
+
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header"><h3>Quick Reports</h3></div>
+                <div class="card-body">
+                    <div class="inline-row">
+                        <button onclick="loadMostBorrowed()">Most Borrowed Titles</button>
+                        <button onclick="loadOverdueItems()" class="btn-danger">Overdue Items</button>
+                    </div>
+                    <p id="reportMsg" class="message"></p>
+                    <div class="table-wrap" style="margin-top: 16px;">
+                        <table>
+                            <thead id="reportHead"><tr><th>Results</th></tr></thead>
+                            <tbody id="reportTable"><tr><td class="subtle">No report loaded yet.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function postForm(url, dataObj) {
+            const formData = new FormData();
+            Object.entries(dataObj).forEach(([key, value]) => formData.append(key, value));
+            const response = await fetch(url, { method: "POST", body: formData });
+            return await response.json();
+        }
+        function showMessage(id, text) { document.getElementById(id).innerText = text; }
+
+        async function createPublisher() { const data = await postForm("/api/create-publisher", { publisher_name: document.getElementById("publisherName").value }); showMessage("publisherMsg", data.error ? "Error: " + data.error : `Publisher created. ID: ${data.publisher_id}`); }
+        async function createAuthor() { const data = await postForm("/api/create-author", { author_name: document.getElementById("authorName").value }); showMessage("authorMsg", data.error ? "Error: " + data.error : `Author created. ID: ${data.author_id}`); }
+        async function createBookTitle() { const data = await postForm("/api/create-book-title", { title_name: document.getElementById("titleName").value, publisher_id: document.getElementById("publisherId").value, genre: document.getElementById("genre").value, edition: document.getElementById("edition").value, publication_year: document.getElementById("publicationYear").value || 0, subject_area: "", age_restriction: 0 }); showMessage("titleMsg", data.error ? "Error: " + data.error : `Book title created. ID: ${data.title_id}`); }
+        async function createBookCopy() { const data = await postForm("/api/create-book-copy", { copy_isbn: document.getElementById("copyIsbn").value, title_id: document.getElementById("copyTitleId").value, shelf_location: document.getElementById("shelfLocation").value, status: "Available" }); showMessage("copyMsg", data.error ? "Error: " + data.error : `Book copy created. ID: ${data.copy_id}`); }
+        async function createCheckout() { const data = await postForm("/api/create-checkout", { member_id: document.getElementById("checkoutMemberId").value, emp_id: document.getElementById("checkoutEmpId").value }); showMessage("checkoutMsg", data.error ? "Error: " + data.error : `Checkout created. ID: ${data.checkout_id}`); }
+        async function createCheckoutItem() { const data = await postForm("/api/create-checkout-item", { checkout_id: document.getElementById("checkoutId").value, copy_id: document.getElementById("checkoutCopyId").value, due_date: document.getElementById("checkoutDueDate").value }); showMessage("checkoutItemMsg", data.error ? "Error: " + data.error : data.message); }
+        async function returnCheckoutItem() { const data = await postForm("/api/return-checkout-item", { checkout_id: document.getElementById("returnCheckoutId").value, copy_id: document.getElementById("returnCopyId").value }); showMessage("returnMsg", data.error ? "Error: " + data.error : data.message); }
+        async function renewCheckoutItem() { const data = await postForm("/api/renew-checkout-item", { checkout_id: document.getElementById("renewCheckoutId").value, copy_id: document.getElementById("renewCopyId").value }); showMessage("renewMsg", data.error ? "Error: " + data.error : data.message); }
+
+        async function loadMostBorrowed() {
+            const response = await fetch("/api/report/most-borrowed-titles"); const data = await response.json();
+            const head = document.getElementById("reportHead"); const table = document.getElementById("reportTable"); const msg = document.getElementById("reportMsg");
+            if (data.error) { msg.innerText = "Error: " + data.error; return; }
+            head.innerHTML = `<tr><th>Title ID</th><th>Title Name</th><th>Borrow Count</th></tr>`;
+            if (!data.results.length) { table.innerHTML = `<tr><td colspan="3" class="subtle">No data yet.</td></tr>`; return; }
+            table.innerHTML = data.results.map(row => `<tr><td>${row.TITLE_ID}</td><td>${row.TITLE_NAME}</td><td>${row.BORROW_COUNT}</td></tr>`).join("");
+            msg.innerText = "Loaded most borrowed titles.";
+        }
+
+        async function loadOverdueItems() {
+            const response = await fetch("/api/report/overdue-items"); const data = await response.json();
+            const head = document.getElementById("reportHead"); const table = document.getElementById("reportTable"); const msg = document.getElementById("reportMsg");
+            if (data.error) { msg.innerText = "Error: " + data.error; return; }
+            head.innerHTML = `<tr><th>Checkout ID</th><th>Copy ID</th><th>Due Date</th><th>Member ID</th></tr>`;
+            if (!data.results.length) { table.innerHTML = `<tr><td colspan="4" class="subtle">No overdue items.</td></tr>`; return; }
+            table.innerHTML = data.results.map(row => `<tr><td>${row.CHECKOUT_ID}</td><td>${row.COPY_ID}</td><td>${row.CHECKOUT_ITEM_DUEDATE}</td><td>${row.MEMBER_ID}</td></tr>`).join("");
+            msg.innerText = "Loaded overdue items.";
+        }
+    </script>
+</body>
+</html>
