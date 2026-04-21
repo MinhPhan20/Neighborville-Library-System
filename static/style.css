@@ -139,28 +139,18 @@ button {
 
 .btn-success {
     background: var(--success);
+    background: #15803d;
 }
-
-    .btn-success:hover {
-        background: #15803d;
-    }
 
 .btn-warning {
     background: var(--warning);
+    background: #b45309;
 }
-
-    .btn-warning:hover {
-        background: #b45309;
-    }
 
 .btn-danger {
     background: var(--danger);
+    background: #b91c1c;
 }
-
-    .btn-danger:hover {
-        background: #b91c1c;
-    }
-
 .inline-row {
     display: flex;
     gap: 12px;
