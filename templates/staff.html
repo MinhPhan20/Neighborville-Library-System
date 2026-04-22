@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Control Center</title>
+    <title>Manager Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
     <style>
         .nav-bar {
@@ -17,7 +17,11 @@
             margin-bottom: 30px;
             box-shadow: var(--shadow);
         }
-
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
         .nav-links a {
             margin-left: 15px;
             text-decoration: none;
@@ -46,6 +50,119 @@
                 background: var(--danger);
                 color: white;
             }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            min-height: 320px;
+        }
+
+        .card-header h3 {
+            font-size: 1.1rem;
+            color: #1f2937;
+        }
+
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 100%;
+        }
+
+            .form-grid input {
+                padding: 10px 14px;
+                border-radius: 8px;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                font-size: 0.95rem;
+            }
+
+                .form-grid input::placeholder {
+                    color: #94a3b8;
+                }
+
+            .form-grid button {
+                margin-top: auto;
+                padding: 12px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                border: none;
+            }
+
+        .btn-blue {
+            background-color: #4f46e5;
+            color: white;
+        }
+
+            .btn-blue:hover {
+                background-color: #4338ca;
+            }
+
+        .btn-orange {
+            background-color: #c2782b;
+            color: white;
+        }
+
+            .btn-orange:hover {
+                background-color: #a66522;
+            }
+
+        .btn-green {
+            background-color: #589c56;
+            color: white;
+        }
+
+            .btn-green:hover {
+                background-color: #488246;
+            }
+
+        .btn-red {
+            background-color: #c0392b;
+            color: white;
+        }
+
+            .btn-red:hover {
+                background-color: #a93226;
+            }
+
+        .message {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            margin-bottom: 0;
+            min-height: 18px;
+            font-weight: 600;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+            .search-bar select, .search-bar input {
+                padding: 10px 14px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                font-size: 0.95rem;
+            }
+
+            .search-bar select {
+                width: 25%;
+                background: white;
+            }
+
+            .search-bar input {
+                flex-grow: 1;
+            }
+
+            .search-bar button {
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                border: none;
+            }
     </style>
 </head>
 <body>
@@ -53,317 +170,470 @@
         <div class="container">
 
             <div class="nav-bar">
-                <div style="font-size: 1.2rem; font-weight: 800; color: var(--text);">Staff Control Center</div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: var(--text);">Manager Dashboard</div>
                 <div class="nav-links">
-                    <span class="badge" style="margin-right: 10px;">ID: {{ user_id or "Admin" }}</span>
+                    <span class="badge" style="margin-right: 10px; font-size: 0.85rem;">Manager ID: {{ user_id or "Admin" }}</span>
                     <a href="/" class="btn-home">Home</a>
                     <a href="/logout" class="btn-logout">Logout</a>
                 </div>
             </div>
 
             <div class="grid grid-3">
-                <!-- Book Title Creation -->
+
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Create Book Title</h3>
-                    </div>
-                    
+                    <div class="card-header"><h3>Create Book Title</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
                             <input type="text" id="titleName" placeholder="Title Name">
                             <input type="number" id="publicationYear" placeholder="Publication Year">
                             <input type="number" id="publisherId" placeholder="Publisher ID">
-
                             <p id="titleMsg" class="message"></p>
-                            <button onclick="createBookTitle()">Create</button><p id="titleMsg" class="message"></p>
+                            <button class="btn-blue" onclick="createBookTitle()">Create</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Book Copy Creation -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Create Book Copy</h3>
-                    </div>
-
+                    <div class="card-header"><h3>Create Book Copy</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
                             <input type="number" id="copyTitleId" placeholder="Title ID">
-                           
+                            <input type="number" id="copyAmount" placeholder="Amount (Default: 1)" min="1">
                             <p id="copyMsg" class="message"></p>
-                            <button onclick="createBookCopy()">Create</button>
+                            <button class="btn-blue" onclick="createBookCopy()">Create Copies</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Checkout Creation -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Create Checkout</h3>
-                    </div>
-
+                    <div class="card-header"><h3>Create Checkout</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
                             <input type="number" id="checkoutMemberId" placeholder="Member ID">
                             <input type="number" id="checkoutEmpId" placeholder="Employee ID">
-
                             <p id="checkoutMsg" class="message"></p>
-                            <button class="btn-warning" onclick="createCheckout()">Create</button>
+                            <button class="btn-orange" onclick="createCheckout()">Create</button>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Checkout Item Creation -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Add Item to Checkout</h3>
-                    </div>
 
+                <div class="card">
+                    <div class="card-header"><h3>Add Item to Checkout</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
                             <input type="number" id="checkoutId" placeholder="Checkout ID">
                             <input type="number" id="checkoutCopyId" placeholder="Copy ID">
-                            
                             <p id="checkoutItemMsg" class="message"></p>
-                            <button class="btn-warning" onclick="createCheckoutItem()">Add</button>
+                            <button class="btn-orange" onclick="createCheckoutItem()">Add</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Return an Item -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Return Item</h3>
-                    </div>
+                    <div class="card-header"><h3>Return Item</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
                             <input type="number" id="returnCheckoutId" placeholder="Checkout ID">
                             <input type="number" id="returnCopyId" placeholder="Copy ID">
-                            <button class="btn-warning" onclick="returnCheckoutItem()">Return</button>
                             <p id="returnMsg" class="message"></p>
+                            <button class="btn-orange" onclick="returnCheckoutItem()">Return</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Add Member -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Add Member</h3>
-                    </div>
-
+                    <div class="card-header"><h3>Add Member</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
-                            <input type="text" id="memberName" placeholder="Name">
-                            <input type="email" id="memberEmail" placeholder="Email">
-
+                            <input type="text" id="newMemberName" placeholder="Full Name">
+                            <input type="email" id="newMemberEmail" placeholder="Email Address">
                             <p id="memberMsg" class="message"></p>
-                            <button class="btn-success" onclick="createMember()">Add Member</button>
+                            <button class="btn-green" onclick="createMember()">Add Member</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Hire Employee -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Hire Employee</h3>
-                    </div>
-
+                    <div class="card-header"><h3>Update Member</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
-                            <input type="text" id="employeeName" placeholder="Author Name">
-                            <input type="text" id="employeeEmail" placeholder="Employee Email">
-                            <input type="text" id="employeeRank" placeholder="Employee Rank no.">
-
-                            <p id="employeeMsg" class="message"></p>
-                            <button class="btn-success" onclick="createEmployee()">Hire</button>
+                            <input type="number" id="updateMemberId" placeholder="Member ID (Required)">
+                            <input type="text" id="updateMemberName" placeholder="New Name (Optional)">
+                            <input type="number" step="0.01" id="updateMemberFee" placeholder="Add Fee Amount ($)">
+                            <p id="updateMemberMsg" class="message"></p>
+                            <button class="btn-green" onclick="updateMember()">Update Member</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Fire Employee -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Fire Employee</h3>
-                    </div>
-
+                    <div class="card-header"><h3>Hire Employee</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
-                            <input type="text" id="fireEmployeeId" placeholder="Employee ID">
-                            <input type="text" id="fireEmployeeName" placeholder="Employee Name">
-
-                            <p id="fireEmployeeMsg" class="message"></p>
-                            <button class="btn-danger" onclick="fireEmployee()">Fire</button>
+                            <input type="text" id="empName" placeholder="Employee Name">
+                            <input type="email" id="empEmail" placeholder="Employee Email (Login)">
+                            <input type="number" id="empRank" placeholder="Rank no.">
+                            <p id="empMsg" class="message"></p>
+                            <button class="btn-green" onclick="createEmployee()">Hire</button>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Remove Member -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Remove Member</h3>
-                    </div>
 
+                <div class="card">
+                    <div class="card-header"><h3>Update Employee</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
-                            <input type="text" id="removeMemberId" placeholder="Member ID">
-                            <input type="text" id="removeMemberName" placeholder="Member Name">
+                            <input type="number" id="updateEmpId" placeholder="Employee ID (Required)">
+                            <input type="text" id="updateEmpName" placeholder="New Name (Optional)">
+                            <input type="email" id="updateEmpEmail" placeholder="New Email (Optional)">
+                            <input type="number" id="updateEmpRank" placeholder="New Rank no. (Optional)">
+                            <p id="updateEmpMsg" class="message"></p>
+                            <button class="btn-green" onclick="updateEmployee()">Update Employee</button>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="card">
+                    <div class="card-header"><h3>Fire Employee</h3></div>
+                    <div class="card-body">
+                        <div class="form-grid">
+                            <input type="number" id="fireEmpId" placeholder="Employee ID">
+                            <p id="fireMsg" class="message"></p>
+                            <button class="btn-red" onclick="fireEmployee()">Fire</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>Remove Member</h3></div>
+                    <div class="card-body">
+                        <div class="form-grid">
+                            <input type="number" id="removeMemberId" placeholder="Member ID">
                             <p id="removeMemberMsg" class="message"></p>
-                            <button class="btn-danger" onclick="removeMember()">Remove</button>
+                            <button class="btn-red" onclick="removeMember()">Remove</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Remove Fee -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Remove Fee</h3>
-                    </div>
-
+                    <div class="card-header"><h3>Remove Fee</h3></div>
                     <div class="card-body">
                         <div class="form-grid">
-                            <input type="text" id="feeMemberID" placeholder="Member ID">
-                            <input type="text" id="feeID" placeholder="Fee ID">
-                            <input type="number" id="feeAmount" placeholder="Amount to Remove">
-
+                            <input type="number" id="removeFeeId" placeholder="Fee ID">
                             <p id="feeMsg" class="message"></p>
-                            <button class="btn-danger" onclick="removeFee()">Remove Fee</button>
+                            <button class="btn-red" onclick="removeFee()">Remove Fee</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>View Member Checkouts</h3></div>
+                    <div class="card-body">
+                        <div class="form-grid">
+                            <input type="number" id="viewCheckoutMemberId" placeholder="Member ID">
+                            <p id="viewCheckoutMsg" class="message"></p>
+                            <button class="btn-blue" onclick="viewMemberCheckouts()">View Checkouts</button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div class="card" style="margin-top: 24; min-height: auto;">
+                <div class="card-header"><h3>Search Database</h3></div>
+                <div class="card-body" style="height: auto;">
+                    <div class="search-bar">
+                        <select id="searchType">
+                            <option value="books">Books</option>
+                            <option value="members">Members</option>
+                            <option value="employees">Employees</option>
+                        </select>
+                        <input type="text" id="searchQuery" placeholder="Enter search keyword...">
+                        <button class="btn-blue" onclick="performSearch()">Search</button>
+                    </div>
+                    <p id="searchMsg" class="message"></p>
+                    <div class="table-wrap" style="margin-top: 16px;">
+                        <table>
+                            <thead id="searchHead"><tr><th>Results</th></tr></thead>
+                            <tbody id="searchTable"><tr><td class="subtle">Select a category and type a keyword to search.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 24px; min-height: auto;">
+                <div class="card-header"><h3>Quick Reports & Views</h3></div>
+                <div class="card-body" style="height: auto;">
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn-green" onclick="loadAllCurrentCheckouts()" style="padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;">All Current Checkouts</button>
+                    </div>
+                    <p id="reportMsg" class="message"></p>
+                    <div class="table-wrap" style="margin-top: 16px;">
+                        <table>
+                            <thead id="reportHead"><tr><th>Results</th></tr></thead>
+                            <tbody id="reportTable"><tr><td class="subtle">No report loaded yet.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
+        // Universal API Caller
         async function postForm(url, dataObj) {
             const formData = new FormData();
             Object.entries(dataObj).forEach(([key, value]) => formData.append(key, value));
             const response = await fetch(url, { method: "POST", body: formData });
             return await response.json();
         }
-        function showMessage(id, text) { document.getElementById(id).innerText = text; }
 
-        async function createPublisher() { 
-            const data = await postForm("/api/create-publisher", { publisher_name: document.getElementById("publisherName").value });
-            showMessage("publisherMsg", data.error ? "Error: " + data.error : `Publisher created. ID: ${data.publisher_id}`); }
+        // Notification handler
+        function showMessage(id, text, isError) {
+            const msgElement = document.getElementById(id);
+            msgElement.innerText = text;
+            msgElement.style.color = isError ? "#c0392b" : "#589c56";
+            setTimeout(() => { msgElement.innerText = ""; }, 5000);
+        }
+        function clearInputs(ids) { ids.forEach(id => document.getElementById(id).value = ""); }
 
-        async function createAuthor() { 
-            const data = await postForm("/api/create-author", { author_name: document.getElementById("authorName").value }); 
-            showMessage("authorMsg", data.error ? "Error: " + data.error : `Author created. ID: ${data.author_id}`); }
+        async function createBookTitle() {
+            const data = await postForm("/api/create-book-title", {
+                title_name: document.getElementById("titleName").value,
+                publisher_id: document.getElementById("publisherId").value,
+                publication_year: document.getElementById("publicationYear").value || 0
+            });
+            if (data.error || data.detail) showMessage("titleMsg", "Error: " + (data.error || "Invalid inputs"), true);
+            else { showMessage("titleMsg", data.message, false); clearInputs(["titleName", "publisherId", "publicationYear"]); }
+        }
 
-        async function createBookTitle() { 
-            const data = await postForm("/api/create-book-title", { title_name: document.getElementById("titleName").value, publisher_id: document.getElementById("publisherId").value, publication_year: document.getElementById("publicationYear").value || 0, subject_area: "", age_restriction: 0 }); 
-            showMessage("titleMsg", data.error ? "Error: " + data.error : `Book title created. ID: ${data.title_id}`); }
-        
-        async function createBookCopy() { 
-            const data = await postForm("/api/create-book-copy", { title_id: document.getElementById("copyTitleId").value });
-            showMessage("copyMsg", data.error ? "Error: " + data.error : `Book copy created. ID: ${data.copy_id}`); }
+        async function createBookCopy() {
+            const titleId = document.getElementById("copyTitleId").value;
+            const amount = document.getElementById("copyAmount").value || 1;
+
+            if (!titleId) return showMessage("copyMsg", "Please enter a Title ID.", true);
+
+            const data = await postForm("/api/create-book-copy", {
+                copy_isbn: Math.floor(Math.random() * 100000000),
+                title_id: titleId,
+                amount: amount
+            });
+            if (data.error || data.detail) showMessage("copyMsg", "Error: " + (data.error || "Invalid inputs"), true);
+            else { showMessage("copyMsg", data.message, false); clearInputs(["copyTitleId", "copyAmount"]); }
+        }
+
+        async function createCheckout() {
+            const data = await postForm("/api/create-checkout", {
+                member_id: document.getElementById("checkoutMemberId").value,
+                emp_id: document.getElementById("checkoutEmpId").value
+            });
+            if (data.error || data.detail) showMessage("checkoutMsg", "Error: " + (data.error || "Invalid inputs"), true);
+            else { showMessage("checkoutMsg", data.message, false); clearInputs(["checkoutMemberId", "checkoutEmpId"]); }
+        }
+
+        async function createCheckoutItem() {
+            const data = await postForm("/api/create-checkout-item", {
+                checkout_id: document.getElementById("checkoutId").value,
+                copy_id: document.getElementById("checkoutCopyId").value
+            });
+            if (data.error || data.detail) showMessage("checkoutItemMsg", "Error: " + (data.error || "Invalid inputs"), true);
+            else { showMessage("checkoutItemMsg", data.message, false); clearInputs(["checkoutId", "checkoutCopyId"]); }
+        }
+
+        async function returnCheckoutItem() {
+            const data = await postForm("/api/return-checkout-item", {
+                checkout_id: document.getElementById("returnCheckoutId").value,
+                copy_id: document.getElementById("returnCopyId").value
+            });
+            if (data.error || data.detail) showMessage("returnMsg", "Error: " + (data.error || "Invalid inputs"), true);
+            else { showMessage("returnMsg", data.message, false); clearInputs(["returnCheckoutId", "returnCopyId"]); }
+        }
 
         async function createMember() {
-            const data = await postForm("/api/create-member", { member_name: document.getElementById("memberName").value, member_email: document.getElementById("memberEmail").value });
-            showMessage("memberMsg", data.error ? "Error: " + data.error : `Member created. ID: ${data.member_id}`); }
-        
-        async function createEmployee() {
-            const data = await postForm("/api/create-employee", { employee_name: document.getElementById("employeeName").value, employee_email: document.getElementById("employeeEmail").value, employee_rank: document.getElementById("employeeRank").value });
-            showMessage("employeeMsg", data.error ? "Error: " + data.error : `Employee created. ID: ${data.employee_id}`); }
+            const name = document.getElementById("newMemberName").value;
+            const email = document.getElementById("newMemberEmail").value;
+            if (!name || !email) return showMessage("memberMsg", "Please fill out all fields.", true);
 
-        async function createCheckout() { 
-            const data = await postForm("/api/create-checkout", { member_id: document.getElementById("checkoutMemberId").value, emp_id: document.getElementById("checkoutEmpId").value });
-            showMessage("checkoutMsg", data.error ? "Error: " + data.error : `Checkout created. ID: ${data.checkout_id}`); }
+            const data = await postForm("/api/create-member", { name: name, email: email });
 
-        async function createCheckoutItem() { 
-            const data = await postForm("/api/create-checkout-item", { checkout_id: document.getElementById("checkoutId").value, copy_id: document.getElementById("checkoutCopyId").value, due_date: document.getElementById("checkoutDueDate").value });
-            showMessage("checkoutItemMsg", data.error ? "Error: " + data.error : data.message); }
-        
-        async function returnCheckoutItem() { 
-            const data = await postForm("/api/return-checkout-item", { checkout_id: document.getElementById("returnCheckoutId").value, copy_id: document.getElementById("returnCopyId").value });
-            showMessage("returnMsg", data.error ? "Error: " + data.error : data.message); }
-
-        async function renewCheckoutItem() {
-            const data = await postForm("/api/renew-checkout-item", { checkout_id: document.getElementById("renewCheckoutId").value, copy_id: document.getElementById("renewCopyId").value });
-            showMessage("renewMsg", data.error ? "Error: " + data.error : data.message); }
-        
-        async function fireEmployee() {
-            const data = await postForm("/api/fire-employee", { employee_id: document.getElementById("fireEmployeeId").value, employee_name: document.getElementById("fireEmployeeName").value });
-            showMessage("fireEmployeeMsg", data.error ? "Error: " + data.error : data.message); }
-        
-        async function removeMember() {
-            const data = await postForm("/api/remove-member", { member_id: document.getElementById("removeMemberId").value, member_name: document.getElementById("removeMemberName").value });
-            showMessage("removeMemberMsg", data.error ? "Error: " + data.error : data.message); }
-        
-        async function removeFee() {
-            const data = await postForm("/api/remove-fee", { member_id: document.getElementById("feeMemberID").value, fee_id: document.getElementById("feeID").value, amount: document.getElementById("feeAmount").value });
-            showMessage("feeMsg", data.error ? "Error: " + data.error : data.message); }
-
-        async function loadMostBorrowed() {
-            const response = await fetch("/api/report/most-borrowed-titles"); const data = await response.json();
-            const head = document.getElementById("reportHead"); const table = document.getElementById("reportTable"); const msg = document.getElementById("reportMsg");
-            if (data.error) { msg.innerText = "Error: " + data.error; return; }
-            head.innerHTML = `<tr><th>Title ID</th><th>Title Name</th><th>Borrow Count</th></tr>`;
-            if (!data.results.length) { table.innerHTML = `<tr><td colspan="3" class="subtle">No data yet.</td></tr>`; return; }
-            table.innerHTML = data.results.map(row => `<tr><td>${row.TITLE_ID}</td><td>${row.TITLE_NAME}</td><td>${row.BORROW_COUNT}</td></tr>`).join("");
-            msg.innerText = "Loaded most borrowed titles.";
+            if (data.error || data.detail) showMessage("memberMsg", "Error: " + (data.error || "Check inputs"), true);
+            else { showMessage("memberMsg", data.message, false); clearInputs(["newMemberName", "newMemberEmail"]); }
         }
 
-        async function loadOverdueItems() {
-            const response = await fetch("/api/report/overdue-items"); const data = await response.json();
-            const head = document.getElementById("reportHead"); const table = document.getElementById("reportTable"); const msg = document.getElementById("reportMsg");
-            if (data.error) { msg.innerText = "Error: " + data.error; return; }
-            head.innerHTML = `<tr><th>Checkout ID</th><th>Copy ID</th><th>Due Date</th><th>Member ID</th></tr>`;
-            if (!data.results.length) { table.innerHTML = `<tr><td colspan="4" class="subtle">No overdue items.</td></tr>`; return; }
-            table.innerHTML = data.results.map(row => `<tr><td>${row.CHECKOUT_ID}</td><td>${row.COPY_ID}</td><td>${row.CHECKOUT_ITEM_DUEDATE}</td><td>${row.MEMBER_ID}</td></tr>`).join("");
-            msg.innerText = "Loaded overdue items.";
-            <section class="card">
-                <h2>Overdue Items</h2>
-                <button type="button" onclick="loadOverdueItems()">Refresh Overdue Items</button>
-                <div id="overdue-items">No data loaded yet.</div>
-            </section>
-        }
-    </script>
-    <script>
-        async function loadOverdueItems() {
-            const container = document.getElementById("overdue-items");
-            container.innerHTML = "<p>Loading...</p>";
+        async function updateMember() {
+            const memberId = document.getElementById("updateMemberId").value;
+            const name = document.getElementById("updateMemberName").value;
+            const fee = document.getElementById("updateMemberFee").value;
 
-            try {
-                const response = await fetch("/api/report/overdue-items");
-                const data = await response.json();
+            if (!memberId) return showMessage("updateMemberMsg", "Enter a Member ID.", true);
 
-                if (data.error) {
-                    container.innerHTML = `<p>${data.error}</p>`;
-                    return;
-                }
+            const data = await postForm("/api/update-member", {
+                member_id: memberId,
+                name: name,
+                fee_amount: fee || 0.0
+            });
 
-                if (!data.results || data.results.length === 0) {
-                    container.innerHTML = "<p>No overdue items found.</p>";
-                    return;
-                }
-
-                container.innerHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Checkout ID</th>
-                            <th>Copy ID</th>
-                            <th>Due Date</th>
-                            <th>Member ID</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.results.map(item => `
-                            <tr>
-                                <td>${item.CHECKOUT_ID}</td>
-                                <td>${item.COPY_ID}</td>
-                                <td>${item.CHECKOUT_ITEM_DUEDATE}</td>
-                                <td>${item.MEMBER_ID}</td>
-                            </tr>
-                        `).join("")}
-                    </tbody>
-                </table>
-            `;
-            } catch (error) {
-                container.innerHTML = "<p>Could not load overdue items.</p>";
+            if (data.error || data.detail) {
+                showMessage("updateMemberMsg", "Error: " + (data.error || "Check inputs"), true);
+            } else {
+                showMessage("updateMemberMsg", data.message, false);
+                clearInputs(["updateMemberId", "updateMemberName", "updateMemberFee"]);
             }
+        }
+
+        async function createEmployee() {
+            const name = document.getElementById("empName").value;
+            const email = document.getElementById("empEmail").value;
+            const rank = document.getElementById("empRank").value;
+
+            if (!name || !email || !rank) return showMessage("empMsg", "Please fill out all fields.", true);
+
+            const data = await postForm("/api/create-employee", { emp_name: name, emp_email: email, rank_id: rank });
+
+            if (data.error || data.detail) showMessage("empMsg", "Error: " + (data.error || "Check inputs"), true);
+            else { showMessage("empMsg", data.message, false); clearInputs(["empName", "empEmail", "empRank"]); }
+        }
+
+        async function updateEmployee() {
+            const empId = document.getElementById("updateEmpId").value;
+            const name = document.getElementById("updateEmpName").value;
+            const email = document.getElementById("updateEmpEmail").value;
+            const rank = document.getElementById("updateEmpRank").value;
+
+            if (!empId) return showMessage("updateEmpMsg", "Enter an Employee ID.", true);
+
+            const data = await postForm("/api/update-employee", {
+                emp_id: empId,
+                emp_name: name,
+                emp_email: email,
+                rank_id: rank || 0
+            });
+
+            if (data.error || data.detail) {
+                showMessage("updateEmpMsg", "Error: " + (data.error || "Check inputs"), true);
+            } else {
+                showMessage("updateEmpMsg", data.message, false);
+                clearInputs(["updateEmpId", "updateEmpName", "updateEmpEmail", "updateEmpRank"]);
+            }
+        }
+
+        async function fireEmployee() {
+            const empId = document.getElementById("fireEmpId").value;
+            if (!empId) return showMessage("fireMsg", "Enter an Employee ID.", true);
+            const data = await postForm("/api/fire-employee", { emp_id: empId });
+            if (data.error || data.detail) showMessage("fireMsg", "Error: " + (data.error || "Not found"), true);
+            else { showMessage("fireMsg", data.message, false); clearInputs(["fireEmpId"]); }
+        }
+
+        async function removeMember() {
+            const memberId = document.getElementById("removeMemberId").value;
+            if (!memberId) return showMessage("removeMemberMsg", "Enter a Member ID.", true);
+            const data = await postForm("/api/remove-member", { member_id: memberId });
+            if (data.error || data.detail) showMessage("removeMemberMsg", "Error: " + (data.error || "Not found"), true);
+            else { showMessage("removeMemberMsg", data.message, false); clearInputs(["removeMemberId"]); }
+        }
+
+        async function removeFee() {
+            const feeId = document.getElementById("removeFeeId").value;
+            if (!feeId) return showMessage("feeMsg", "Enter a Fee ID.", true);
+            const data = await postForm("/api/remove-fee", { fee_id: feeId });
+            if (data.error || data.detail) showMessage("feeMsg", "Error: " + (data.error || "Not found"), true);
+            else { showMessage("feeMsg", data.message, false); clearInputs(["removeFeeId"]); }
+        }
+
+        // Search Function
+        async function performSearch() {
+            const type = document.getElementById("searchType").value;
+            const query = document.getElementById("searchQuery").value;
+            const head = document.getElementById("searchHead");
+            const table = document.getElementById("searchTable");
+
+            if (!query) return showMessage("searchMsg", "Please enter a search keyword.", true);
+
+            const data = await postForm("/api/search", { search_type: type, query: query });
+
+            if (data.error) {
+                showMessage("searchMsg", "Error: " + data.error, true);
+                return;
+            }
+
+            if (!data.results || data.results.length === 0) {
+                head.innerHTML = `<tr><th>Results</th></tr>`;
+                table.innerHTML = `<tr><td class="subtle">No results found for "${query}".</td></tr>`;
+                showMessage("searchMsg", "Search completed.", false);
+                return;
+            }
+
+            const keys = Object.keys(data.results[0]);
+            head.innerHTML = `<tr>${keys.map(k => `<th>${k.replace(/_/g, ' ')}</th>`).join('')}</tr>`;
+            table.innerHTML = data.results.map(row =>
+                `<tr>${keys.map(k => `<td>${row[k]}</td>`).join('')}</tr>`
+            ).join('');
+
+            showMessage("searchMsg", `Found ${data.results.length} result(s).`, false);
+        }
+
+        async function viewMemberCheckouts() {
+            const memberId = document.getElementById("viewCheckoutMemberId").value;
+            if (!memberId) return showMessage("viewCheckoutMsg", "Enter a Member ID.", true);
+
+            const data = await postForm("/api/member-checkouts", { member_id: memberId });
+
+            if (data.error || data.detail) {
+                showMessage("viewCheckoutMsg", "Error: " + (data.error || "Not found"), true);
+                return;
+            }
+
+            const head = document.getElementById("reportHead");
+            const table = document.getElementById("reportTable");
+
+            showMessage("viewCheckoutMsg", `Loaded checkouts for ${data.member_name}`, false);
+            clearInputs(["viewCheckoutMemberId"]);
+
+            if (!data.results || data.results.length === 0) {
+                head.innerHTML = `<tr><th>Results</th></tr>`;
+                table.innerHTML = `<tr><td class="subtle">No checkout records found for this member.</td></tr>`;
+                showMessage("reportMsg", `Showing checkouts for: ${data.member_name}`, false);
+                return;
+            }
+
+            head.innerHTML = `<tr><th>Checkout ID</th><th>Copy ID</th><th>Book Title</th><th>Due Date</th><th>Return Date</th><th>Status</th></tr>`;
+            table.innerHTML = data.results.map(row =>
+                `<tr>
+                        <td>${row.CHECKOUT_ID}</td>
+                        <td>${row.COPY_ID}</td>
+                        <td>${row.TITLE_NAME}</td>
+                        <td>${row.CHECKOUT_ITEM_DUEDATE}</td>
+                        <td>${row.RETURN_DATE}</td>
+                        <td><span class="badge" style="background-color: ${row.STATUS === 'Overdue' ? '#fee2e2' : (row.STATUS === 'Returned' ? '#dcfce7' : '#e0e7ff')}; color: ${row.STATUS === 'Overdue' ? '#c0392b' : (row.STATUS === 'Returned' ? '#166534' : '#4f46e5')};">${row.STATUS}</span></td>
+                    </tr>`
+            ).join('');
+
+            showMessage("reportMsg", `Showing checkouts for: ${data.member_name}`, false);
+        }
+
+        async function loadAllCurrentCheckouts() {
+            const response = await fetch("/api/report/all-current-checkouts"); const data = await response.json();
+            const head = document.getElementById("reportHead"); const table = document.getElementById("reportTable"); const msg = document.getElementById("reportMsg");
+            if (data.error) { showMessage("reportMsg", "Error: " + data.error, true); return; }
+
+            head.innerHTML = `<tr><th>Checkout ID</th><th>Book Title</th><th>Member Name</th><th>Due Date</th><th>Status</th></tr>`;
+
+            if (!data.results || data.results.length === 0) {
+                table.innerHTML = `<tr><td colspan="5" class="subtle">There are no active checkouts in the library right now.</td></tr>`;
+                showMessage("reportMsg", "Loaded all current checkouts.", false);
+                return;
+            }
+
+            table.innerHTML = data.results.map(row =>
+                `<tr>
+                        <td>${row.CHECKOUT_ID}</td>
+                        <td>${row.TITLE_NAME}</td>
+                        <td>${row.MEMBER_NAME}</td>
+                        <td>${row.CHECKOUT_ITEM_DUEDATE}</td>
+                        <td><span class="badge" style="background-color: ${row.STATUS === 'Overdue' ? '#fee2e2' : '#e0e7ff'}; color: ${row.STATUS === 'Overdue' ? '#c0392b' : '#4f46e5'};">${row.STATUS}</span></td>
+                    </tr>`
+            ).join("");
+            showMessage("reportMsg", `Loaded ${data.results.length} current checkouts.`, false);
         }
     </script>
 </body>
