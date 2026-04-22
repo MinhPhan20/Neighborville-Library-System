@@ -3,154 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Member Dashboard</title>
+    <title>Neighborville Library Manager Login</title>
     <link rel="stylesheet" href="/static/style.css">
-    <style>
-        .nav-bar {
-            background: var(--surface);
-            padding: 15px 25px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-        }
-
-        .nav-links a {
-            margin-left: 15px;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 8px 15px;
-            border-radius: 8px;
-            transition: 0.2s;
-        }
-
-        .btn-home {
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-            .btn-home:hover {
-                background: var(--primary);
-                color: white;
-            }
-
-        .btn-logout {
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-            .btn-logout:hover {
-                background: var(--danger);
-                color: white;
-            }
-    </style>
 </head>
 <body>
     <div class="page">
         <div class="container">
-
-            <div class="nav-bar">
-                <div style="font-size: 1.2rem; font-weight: 800; color: var(--text);">Neighborville Library</div>
-                <div class="nav-links">
-                    <a href="/" class="btn-home">Home</a>
-                    <a href="/logout" class="btn-logout">Logout</a>
-                </div>
+            <div class="hero">
+                <h1>Neighborville Public Library</h1>
+                <p>Manager access for catalog control, circulation management, and reporting.</p>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h2>Welcome, Member ID: <span id="displayUserId" class="badge">{{ user_id or "Guest" }}</span></h2>
-                </div>
-                <div class="card-body">
-                    <h3 style="margin-top: 0;">Search Catalog</h3>
-                    <form class="inline-row" method="post" action="/api/search-books" onsubmit="return handleSearch(event)">
-                        <input type="text" id="searchInput" name="title" placeholder="Search for a book title..." required>
-                        <button type="submit" style="max-width: 150px;">Search</button>
-                    </form>
-                    <p id="searchMessage" class="message">Enter a title to search the catalog.</p>
-
-                    <div class="table-wrap" id="searchResultsWrap" style="display: none; margin-bottom: 30px;">
-                        <table id="searchResultsTable">
-                            <thead><tr><th>Title</th><th>Genre</th><th>Year</th></tr></thead>
-                            <tbody id="searchResultsBody"></tbody>
-                        </table>
+            <div class="login-wrap">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Manager Login</h2>
                     </div>
+                    <div class="card-body">
+                        {% if error %}
+                        <div style="background-color: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-weight: bold;">
+                            Invalid username or password. Please try again.
+                        </div>
+                        {% endif %}
 
-                    <h3>My Checked Out Books</h3>
-                    <div class="table-wrap">
-                        <table>
-                            <thead><tr><th>Book Title</th><th>Due Date</th></tr></thead>
-                            <tbody id="checkoutTable">
-                                <tr><td colspan="2" class="subtle" style="text-align: center;">Loading your checkouts...</td></tr>
-                            </tbody>
-                        </table>
+                        <form method="POST" action="/login" class="form-grid">
+                            <div>
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" placeholder="Enter username" autocomplete="username" required>
+                            </div>
+
+                            <div>
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+                            </div>
+
+                            <button type="submit" style="background-color: green; white;">Login</button>
+                        </form>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        window.onload = async function () {
-            const userId = document.getElementById("displayUserId").innerText;
-            if (userId === "Guest" || !userId) {
-                document.getElementById("checkoutTable").innerHTML = `<tr><td colspan="2" class="subtle" style="text-align: center;">Please login to see checkouts.</td></tr>`;
-                return;
-            }
-            try {
-                const response = await fetch(`/api/member/${userId}/checkouts`);
-                const data = await response.json();
-                const table = document.getElementById("checkoutTable");
-
-                if (data.error) {
-                    table.innerHTML = `<tr><td colspan="2" style="text-align: center; color: red;">Error: ${data.error}</td></tr>`;
-                } else if (data.checkouts && data.checkouts.length > 0) {
-                    table.innerHTML = data.checkouts.map(c => {
-                        const statusColor = c.STATUS === 'Overdue' ? 'var(--danger)' : 'var(--muted)';
-                        const textStyle = c.STATUS === 'Overdue' ? 'color: var(--danger); font-weight: bold;' : '';
-                        return `<tr><td>${c.TITLE_NAME} <span style="font-size: 0.8em; color: ${statusColor};">(${c.STATUS})</span></td><td style="${textStyle}">${c.CHECKOUT_ITEM_DUEDATE}</td></tr>`;
-                    }).join("");
-                } else {
-                    table.innerHTML = `<tr><td colspan="2" class="subtle" style="text-align: center;">You currently have no checked out books.</td></tr>`;
-                }
-            } catch (err) {
-                document.getElementById("checkoutTable").innerHTML = `<tr><td colspan="2" style="text-align: center; color: red;">Failed to load data.</td></tr>`;
-            }
-        };
-
-        async function handleSearch(event) {
-            event.preventDefault();
-            const query = document.getElementById('searchInput').value;
-            const message = document.getElementById('searchMessage');
-            const searchWrap = document.getElementById('searchResultsWrap');
-            const searchBody = document.getElementById('searchResultsBody');
-
-            message.innerText = `Searching database for: "${query}"...`;
-            searchWrap.style.display = "none";
-
-            try {
-                const formData = new FormData();
-                formData.append("title", query);
-                const response = await fetch("/api/search-books", { method: "POST", body: formData });
-                const data = await response.json();
-
-                if (data.error) {
-                    message.innerText = `Error: ${data.error}`;
-                } else if (data.results && data.results.length > 0) {
-                    message.innerText = `Found ${data.results.length} result(s).`;
-                    searchBody.innerHTML = data.results.map(book => `<tr><td>${book.TITLE_NAME}</td><td>${book.GENRE || 'N/A'}</td><td>${book.PUBLICATION_YEAR || 'N/A'}</td></tr>`).join("");
-                    searchWrap.style.display = "block";
-                } else {
-                    message.innerText = "No books found matching that title.";
-                }
-            } catch (error) {
-                message.innerText = "Search failed. Check backend/server.";
-            }
-            return false;
-        }
-    </script>
 </body>
 </html>
