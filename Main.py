@@ -24,9 +24,11 @@ application.mount("/static", StaticFiles(directory="static"), name="static")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+"""Verify a plain password against its hashed version."""
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+"""Hash a plain password using bcrypt for secure storage."""
 def get_password_hash(password):
     return pwd_context.hash(password)
 
@@ -46,6 +48,7 @@ LATE_FEE_PER_DAY = 0.50
 # Database setup
 # =================================================
 
+"""Create and return a MySQL connection pool for efficient database access."""
 def create_database_pool():
     try:
         pool = pooling.MySQLConnectionPool(
@@ -63,11 +66,13 @@ def create_database_pool():
 
 database_pool = create_database_pool()
 
+"""Get a database connection from the pool, raising an error if pool is not initialized."""
 def get_database_connection():
     if database_pool is None:
         raise RuntimeError("Database is not configured.")
     return database_pool.get_connection()
 
+"""Initialize the database by creating all necessary tables and inserting default data."""
 def initialize_database():
     try:
         connection = get_database_connection()
@@ -92,6 +97,7 @@ def initialize_database():
         
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
         
+        #Member table to store library members' information
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS MEMBER (
             MEMBER_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -100,6 +106,7 @@ def initialize_database():
         )
         """)
 
+        #Rank table to define employee roles and permissions
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS RANK_TABLE (
             RANK_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -107,6 +114,7 @@ def initialize_database():
         )
         """)
 
+    #Employee table to store staff information, linked to their rank for permissions
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS EMPLOYEE (
             EMP_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -120,6 +128,7 @@ def initialize_database():
         )
         """)
 
+        #Author table to store information about book authors
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS AUTHOR (
             AUTHOR_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -127,6 +136,7 @@ def initialize_database():
         )
         """)
 
+        #Publisher table to store information about book publishers
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS PUBLISHER (
             PUBLISHER_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -134,6 +144,7 @@ def initialize_database():
         )
         """)
 
+        #Book Title table to store information about book titles, linked to publishers
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS BOOK_TITLE (
             TITLE_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -150,6 +161,7 @@ def initialize_database():
         )
         """)
 
+        #Book Copy table to track individual copies of books, their status, and location
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS BOOK_COPY (
             COPY_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -165,6 +177,7 @@ def initialize_database():
         )
         """)
 
+        #Title-Author junction table to handle many-to-many relationships between books and authors, with role information
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS TITLE_AUTHOR (
             TITLE_ID INT NOT NULL,
@@ -180,6 +193,7 @@ def initialize_database():
         )
         """)
 
+        #Fee table to track outstanding fees for members, linked to the member and with status and amount
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS FEE (
             FEE_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -195,6 +209,7 @@ def initialize_database():
         )
         """)
 
+        #Hold table to track which members have placed holds on which book titles, with the date of the hold
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS HOLD (
             MEMBER_ID INT NOT NULL,
@@ -210,6 +225,7 @@ def initialize_database():
         )
         """)
 
+        #Checkout table to track each checkout transaction, linked to the member and employee who processed it, with the date of the checkout
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS CHECKOUT (
             CHECKOUT_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -225,6 +241,7 @@ def initialize_database():
         )
         """)
 
+        #Checkout Item table to track each individual book copy that is part of a checkout transaction, with due dates, return dates, renewal counts, and status
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS CHECKOUT_ITEM (
             CHECKOUT_ID INT NOT NULL,
@@ -246,6 +263,7 @@ def initialize_database():
         )
         """)
         
+        # Insert default ranks and a default manager account if they don't already exist
         try:
             cursor.execute("INSERT INTO RANK_TABLE (RANK_NAME) VALUES ('Manager'), ('Librarian')")
             default_manager_pw = get_password_hash("password123")
@@ -273,6 +291,7 @@ initialize_database()
 # Helper functions for business logic
 # =================================================
 
+"""Calculate the total outstanding fees for a given member."""
 def get_member_outstanding_fees(member_id: int) -> float:
     connection = get_database_connection()
     cursor = connection.cursor(dictionary=True)
@@ -283,6 +302,7 @@ def get_member_outstanding_fees(member_id: int) -> float:
     finally:
         cursor.close(); connection.close()
 
+"""Get the number of active (checked out or overdue) books for a member."""
 def get_member_active_checkout_count(member_id: int) -> int:
     connection = get_database_connection()
     cursor = connection.cursor(dictionary=True)
@@ -293,6 +313,7 @@ def get_member_active_checkout_count(member_id: int) -> int:
     finally:
         cursor.close(); connection.close()
 
+"""Update the status of checkout items that are past their due date to 'Overdue'."""
 def refresh_overdue_items() -> None:
     connection = get_database_connection()
     cursor = connection.cursor()
@@ -306,6 +327,7 @@ def refresh_overdue_items() -> None:
 # Auth & Page routes (MANAGER ONLY)
 # =================================================
 
+"""Render the login page or redirect authenticated staff to their dashboard."""
 @application.get("/")
 def home(request: Request, error: Optional[str] = None):
     if not error:
@@ -330,6 +352,8 @@ def home(request: Request, error: Optional[str] = None):
             
     return templates.TemplateResponse(request, "index.html", {"error": error})
 
+
+"""Authenticate staff login and set session cookie on success."""
 @application.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
     connection = get_database_connection()
@@ -346,23 +370,28 @@ def login(username: str = Form(...), password: str = Form(...)):
     finally:
         cursor.close(); connection.close()
 
+"""Clear the session cookie and redirect to login page."""
 @application.get("/logout")
 def logout():
     response = RedirectResponse(url="/", status_code=303)
     response.delete_cookie(key="library_session", path="/")
     return response
 
+"""Render the staff dashboard page for authenticated employees."""
 @application.get("/staff")
 def staff_page(request: Request, id: Optional[str] = None):
+    # First check for user ID in query parameter, then fall back to session cookie if not provided
     user_id = id
     if not user_id:
         session = request.cookies.get("library_session")
         if session and session.startswith("staff_"):
             user_id = session.split("_")[1]
-            
+
+    # If we still don't have a user ID, redirect to login page      
     if not user_id:
         return RedirectResponse(url="/")
-        
+
+    # Verify that the user ID corresponds to a valid employee in the database   
     try:
         connection = get_database_connection()
         cursor = connection.cursor()
@@ -376,6 +405,7 @@ def staff_page(request: Request, id: Optional[str] = None):
         try: cursor.close(); connection.close()
         except: pass
 
+    # Render the staff dashboard with no-cache headers to prevent caching of sensitive information
     response = templates.TemplateResponse(request, "staff.html", {"user_id": user_id})
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, private"
     response.headers["Pragma"] = "no-cache"
@@ -388,6 +418,7 @@ def staff_page(request: Request, id: Optional[str] = None):
 
 # --- CREATE OPERATIONS ---
 
+"""Create a new book title in the database using the title name, publication year, and publisher ID provided in the form data."""
 @application.post("/api/create-book-title")
 def create_book_title(title_name: str = Form(...), publication_year: int = Form(0), publisher_id: int = Form(...)):
     try:
@@ -399,18 +430,23 @@ def create_book_title(title_name: str = Form(...), publication_year: int = Form(
         )
         connection.commit()
         return {"message": f"Book title created. ID: {cursor.lastrowid}"}
-    except Exception as e: return {"error": str(e)}
+    
+    except Exception as e: 
+        return {"error": str(e)}
     finally:
         try: cursor.close(); connection.close()
         except: pass
 
+"""Create one or more book copies for a given title using the starting ISBN, title ID, and amount of new copies"""
 @application.post("/api/create-book-copy")
 def create_book_copy(copy_isbn: int = Form(...), title_id: int = Form(...), amount: int = Form(1)):
     try:
         connection = get_database_connection()
         cursor = connection.cursor()
-        if amount < 1: amount = 1
+        if amount < 1:
+            amount = 1
         created_ids = []
+
         for i in range(amount):
             current_isbn = copy_isbn + i 
             cursor.execute(
@@ -419,21 +455,30 @@ def create_book_copy(copy_isbn: int = Form(...), title_id: int = Form(...), amou
             )
             created_ids.append(str(cursor.lastrowid))
         connection.commit()
-        if amount == 1: return {"message": f"Book copy created. ID: {created_ids[0]}"}
-        else: return {"message": f"Created {amount} copies. IDs: {', '.join(created_ids)}"}
+
+        if amount == 1: 
+            return {"message": f"Book copy created. ID: {created_ids[0]}"}
+        else: 
+            return {"message": f"Created {amount} copies. IDs: {', '.join(created_ids)}"}
+    
     except Exception as e: return {"error": str(e)}
     finally:
         try: cursor.close(); connection.close()
         except: pass
 
+"""Create a new checkout transaction for a member, checking business rules."""
 @application.post("/api/create-checkout")
 def create_checkout(member_id: int = Form(...), emp_id: int = Form(...)):
     try:
+        # Check if member has outstanding fees or too many active checkouts before allowing new checkout
         outstanding = get_member_outstanding_fees(member_id)
-        if outstanding >= FEE_BLOCK_THRESHOLD: return {"error": f"Member blocked. Outstanding fees: ${outstanding:.2f}"}
+        if outstanding >= FEE_BLOCK_THRESHOLD: 
+            return {"error": f"Member blocked. Outstanding fees: ${outstanding:.2f}"}
         active_count = get_member_active_checkout_count(member_id)
-        if active_count >= MAX_BOOKS_PER_MEMBER: return {"error": f"Member hit maximum active books limit."}
+        if active_count >= MAX_BOOKS_PER_MEMBER: 
+            return {"error": f"Member hit maximum active books limit."}
         
+        # If all checks pass, create the checkout record
         connection = get_database_connection()
         cursor = connection.cursor()
         cursor.execute("INSERT INTO CHECKOUT (CHECKOUT_DATE, MEMBER_ID, EMP_ID) VALUES (CURDATE(), %s, %s)", (member_id, emp_id))
@@ -444,23 +489,29 @@ def create_checkout(member_id: int = Form(...), emp_id: int = Form(...)):
         try: cursor.close(); connection.close()
         except: pass
 
+"""Add a book copy to an existing checkout transaction."""
 @application.post("/api/create-checkout-item")
 def create_checkout_item(checkout_id: int = Form(...), copy_id: int = Form(...)):
     try:
+        #First verify that the book copy is available and that the checkout transaction exists
         connection = get_database_connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute("SELECT STATUS FROM BOOK_COPY WHERE COPY_ID = %s", (copy_id,))
         copy = cursor.fetchone()
-        if not copy: return {"error": "Book copy not found."}
-        if copy["STATUS"] != "Available": return {"error": f"Book copy is {copy['STATUS']}"}
+        if not copy: 
+            return {"error": "Book copy not found."}
+        if copy["STATUS"] != "Available": 
+            return {"error": f"Book copy is {copy['STATUS']}"}
         
+        #Next get the checkout date from the CHECKOUT record to calculate the due date for this item
         cursor.execute("SELECT MEMBER_ID, CHECKOUT_DATE FROM CHECKOUT WHERE CHECKOUT_ID = %s", (checkout_id,))
         checkout = cursor.fetchone()
-        if not checkout: return {"error": "Checkout not found."}
-        
+        if not checkout:
+            return {"error": "Checkout not found."}
         checkout_date = checkout["CHECKOUT_DATE"]
         final_due_date = (checkout_date + timedelta(days=INITIAL_LOAN_DAYS)).isoformat()
         
+        #If all checks pass, create the CHECKOUT_ITEM record and update the BOOK_COPY status to 'Checked Out'
         cursor2 = connection.cursor()
         cursor2.execute(
             "INSERT INTO CHECKOUT_ITEM (CHECKOUT_ID, COPY_ID, CHECKOUT_ITEM_DUEDATE, RETURN_DATE, RENEW_COUNT, STATUS) VALUES (%s, %s, %s, NULL, 0, 'Checked Out')",
@@ -474,6 +525,7 @@ def create_checkout_item(checkout_id: int = Form(...), copy_id: int = Form(...))
         try: cursor.close(); cursor2.close(); connection.close()
         except: pass
 
+"""Create a new library member with the provided name and email address."""
 @application.post("/api/create-member")
 def create_member(name: str = Form(...), email: str = Form(...)):
     try:
@@ -490,6 +542,7 @@ def create_member(name: str = Form(...), email: str = Form(...)):
         try: cursor.close(); connection.close()
         except: pass
 
+"""Create a new employee with default password 'staff123'."""
 @application.post("/api/create-employee")
 def create_employee(emp_name: str = Form(...), emp_email: str = Form(...), rank_id: int = Form(...)):
     try:
@@ -509,26 +562,30 @@ def create_employee(emp_name: str = Form(...), emp_email: str = Form(...), rank_
 
 
 # --- UPDATE OPERATIONS ---
-
+"""Update member details or add a fee to their account."""
 @application.post("/api/update-member")
 def update_member(member_id: int = Form(...), name: str = Form(""), fee_amount: float = Form(0.0)):
     try:
         connection = get_database_connection()
         cursor = connection.cursor()
         
+        # Build the dynamic update query based on which fields were provided
         updates = []
         params = []
         if name:
             updates.append("MEMBER_NAME = %s")
             params.append(name)
-            
+
+        # If fee_amount is provided, we will add a new fee record for the member. We check if the member exists first to avoid adding fees to non-existent members.   
         member_updated = False
         if updates:
             query = "UPDATE MEMBER SET " + ", ".join(updates) + " WHERE MEMBER_ID = %s"
             params.append(member_id)
             cursor.execute(query, tuple(params))
-            if cursor.rowcount > 0: member_updated = True
-                
+            if cursor.rowcount > 0:
+                member_updated = True
+
+        # If a fee amount was provided, attempt to add a new fee record for the member. We check if the member exists first to avoid adding fees to non-existent members.    
         fee_added = False
         if fee_amount > 0:
             cursor.execute("SELECT MEMBER_ID FROM MEMBER WHERE MEMBER_ID = %s", (member_id,))
@@ -540,13 +597,18 @@ def update_member(member_id: int = Form(...), name: str = Form(""), fee_amount: 
 
         connection.commit()
         
+        # If we didn't update member details or add a fee, return an error. Otherwise, build a success message indicating what was updated/added.
         if not member_updated and not fee_added:
-            if updates: return {"error": "Member not found."}
+            if updates: 
+                return {"error": "Member not found."}
             return {"error": "No new data provided."}
-            
+        
+
         msg_parts = []
-        if member_updated: msg_parts.append("details updated")
-        if fee_added: msg_parts.append(f"fee of ${fee_amount:.2f} added")
+        if member_updated: 
+            msg_parts.append("details updated")
+        if fee_added: 
+            msg_parts.append(f"fee of ${fee_amount:.2f} added")
         
         return {"message": f"Member {member_id}: " + " and ".join(msg_parts) + "."}
     except Exception as e: return {"error": str(e)}
@@ -554,12 +616,14 @@ def update_member(member_id: int = Form(...), name: str = Form(""), fee_amount: 
         try: cursor.close(); connection.close()
         except: pass
 
+"""Update employee details."""
 @application.post("/api/update-employee")
 def update_employee(emp_id: int = Form(...), emp_name: str = Form(""), emp_email: str = Form(""), rank_id: int = Form(0)):
     try:
         connection = get_database_connection()
         cursor = connection.cursor()
         
+        # Build the dynamic update query based on which fields were provided
         updates = []
         params = []
         if emp_name:
@@ -574,7 +638,8 @@ def update_employee(emp_id: int = Form(...), emp_name: str = Form(""), emp_email
             
         if not updates:
             return {"error": "No new data provided."}
-            
+
+       # Construct the final update query and execute it     
         query = "UPDATE EMPLOYEE SET " + ", ".join(updates) + " WHERE EMP_ID = %s"
         params.append(emp_id)
         
@@ -590,10 +655,11 @@ def update_employee(emp_id: int = Form(...), emp_name: str = Form(""), emp_email
         try: cursor.close(); connection.close()
         except: pass
 
-
+"""Return a checked out book and calculate any late fees."""
 @application.post("/api/return-checkout-item")
 def return_checkout_item(checkout_id: int = Form(...), copy_id: int = Form(...)):
     try:
+        # First verify that the checkout item exists and is currently checked out, and get the due date and member ID for fee calculation
         connection = get_database_connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
@@ -601,15 +667,20 @@ def return_checkout_item(checkout_id: int = Form(...), copy_id: int = Form(...))
             (checkout_id, copy_id)
         )
         row = cursor.fetchone()
-        if not row: return {"error": "Checkout item not found."}
-        if row["RETURN_DATE"] is not None: return {"error": "Book already returned."}
+        if not row: 
+            return {"error": "Checkout item not found."}
+        if row["RETURN_DATE"] is not None: 
+            return {"error": "Book already returned."}
         
+        #Calculate late fees based on how many days past the due date the book is being returned
         due_date = row["CHECKOUT_ITEM_DUEDATE"]
         member_id = row["MEMBER_ID"]
         today = date.today()
         late_days = max((today - due_date).days, 0)
         fee_amount = round(late_days * LATE_FEE_PER_DAY, 2)
         
+        # If the book is late, add a fee record for the member. Then we update the CHECKOUT_ITEM record to set the return date and status, 
+        # and update the BOOK_COPY status back to 'Available'.
         cursor2 = connection.cursor()
         cursor2.execute("UPDATE CHECKOUT_ITEM SET RETURN_DATE = CURDATE(), STATUS = 'Returned' WHERE CHECKOUT_ID = %s AND COPY_ID = %s", (checkout_id, copy_id))
         cursor2.execute("UPDATE BOOK_COPY SET STATUS = 'Available' WHERE COPY_ID = %s", (copy_id,))
@@ -626,6 +697,7 @@ def return_checkout_item(checkout_id: int = Form(...), copy_id: int = Form(...))
 
 # --- DELETE OPERATIONS ---
 
+"""Remove an employee from the system."""
 @application.post("/api/fire-employee")
 def fire_employee(emp_id: int = Form(...)):
     try:
@@ -633,13 +705,16 @@ def fire_employee(emp_id: int = Form(...)):
         cursor = connection.cursor()
         cursor.execute("DELETE FROM EMPLOYEE WHERE EMP_ID = %s", (emp_id,))
         connection.commit()
-        if cursor.rowcount == 0: return {"error": "Employee not found."}
+
+        if cursor.rowcount == 0:
+            return {"error": "Employee not found."}
         return {"message": f"Employee {emp_id} was terminated."}
     except Exception as e: return {"error": "Cannot delete employee."}
     finally:
         try: cursor.close(); connection.close()
         except: pass
 
+"""Remove a member from the system."""
 @application.post("/api/remove-member")
 def remove_member(member_id: int = Form(...)):
     try:
@@ -647,13 +722,15 @@ def remove_member(member_id: int = Form(...)):
         cursor = connection.cursor()
         cursor.execute("DELETE FROM MEMBER WHERE MEMBER_ID = %s", (member_id,))
         connection.commit()
-        if cursor.rowcount == 0: return {"error": "Member not found."}
+        if cursor.rowcount == 0: 
+            return {"error": "Member not found."}
         return {"message": f"Member {member_id} was removed."}
     except Exception as e: return {"error": "Cannot delete active member."}
     finally:
         try: cursor.close(); connection.close()
         except: pass
 
+"""Remove a fee record from the system."""
 @application.post("/api/remove-fee")
 def remove_fee(fee_id: int = Form(...)):
     try:
@@ -661,7 +738,8 @@ def remove_fee(fee_id: int = Form(...)):
         cursor = connection.cursor()
         cursor.execute("DELETE FROM FEE WHERE FEE_ID = %s", (fee_id,))
         connection.commit()
-        if cursor.rowcount == 0: return {"error": "Fee not found."}
+        if cursor.rowcount == 0: 
+            return {"error": "Fee not found."}
         return {"message": f"Fee {fee_id} was removed."}
     except Exception as e: return {"error": str(e)}
     finally:
@@ -671,6 +749,7 @@ def remove_fee(fee_id: int = Form(...)):
 
 # --- READ & SEARCH OPERATIONS ---
 
+"""Search the database for books, members, publishers, authors, or employees."""
 @application.post("/api/search")
 def search_database(search_type: str = Form(...), query: str = Form(...)):
     try:
@@ -678,6 +757,7 @@ def search_database(search_type: str = Form(...), query: str = Form(...)):
         cursor = connection.cursor(dictionary=True)
         search_term = f"%{query}%"
 
+        #search database table based on selected option in staff.html dropdown menu
         if search_type == "books":
             cursor.execute("SELECT TITLE_ID, TITLE_NAME, PUBLICATION_YEAR FROM BOOK_TITLE WHERE TITLE_NAME LIKE %s", (search_term,))
         elif search_type == "members":
@@ -698,17 +778,20 @@ def search_database(search_type: str = Form(...), query: str = Form(...)):
         try: cursor.close(); connection.close()
         except: pass
 
+"""Retrieve the checkout history for a specific member."""
 @application.post("/api/member-checkouts")
 def get_member_checkouts(member_id: int = Form(...)):
     try:
         connection = get_database_connection()
         cursor = connection.cursor(dictionary=True)
         
+        # First verify that the member exists and get their name for the report header
         cursor.execute("SELECT MEMBER_NAME FROM MEMBER WHERE MEMBER_ID = %s", (member_id,))
         member = cursor.fetchone()
         if not member:
             return {"error": "Member not found."}
-            
+        
+        # Then retrieve the checkout history for that member, including book titles, due dates, return dates, and status.
         query = """
             SELECT c.CHECKOUT_ID, ci.COPY_ID, bt.TITLE_NAME, ci.CHECKOUT_ITEM_DUEDATE, ci.RETURN_DATE, ci.STATUS 
             FROM CHECKOUT c 
@@ -721,6 +804,7 @@ def get_member_checkouts(member_id: int = Form(...)):
         cursor.execute(query, (member_id,))
         results = cursor.fetchall()
         
+        # Format the dates in the results to ISO format strings for JSON serialization, and handle null return dates by indicating "Not Returned"
         for row in results:
             if row['CHECKOUT_ITEM_DUEDATE']:
                 row['CHECKOUT_ITEM_DUEDATE'] = row['CHECKOUT_ITEM_DUEDATE'].isoformat()
@@ -736,12 +820,16 @@ def get_member_checkouts(member_id: int = Form(...)):
         try: cursor.close(); connection.close()
         except: pass
 
+"""Generate a report of all currently checked out books."""
 @application.get("/api/report/all-current-checkouts")
 def report_all_current_checkouts():
     try:
         refresh_overdue_items() 
         connection = get_database_connection()
         cursor = connection.cursor(dictionary=True)
+
+        # Retrieve all currently checked out books, including the checkout ID, book title, member name, due date, and status. 
+        # We join across multiple tables to get all the relevant information in one query.
         query = """
             SELECT ci.CHECKOUT_ID, bt.TITLE_NAME, m.MEMBER_NAME, ci.CHECKOUT_ITEM_DUEDATE, ci.STATUS
             FROM CHECKOUT_ITEM ci 
@@ -755,6 +843,7 @@ def report_all_current_checkouts():
         cursor.execute(query)
         results = cursor.fetchall()
         
+        # Format the due dates in the results to ISO format strings for JSON serialization
         for row in results:
             if row['CHECKOUT_ITEM_DUEDATE']:
                 row['CHECKOUT_ITEM_DUEDATE'] = row['CHECKOUT_ITEM_DUEDATE'].isoformat()
