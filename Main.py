@@ -576,7 +576,7 @@ def update_member(member_id: int = Form(...), name: str = Form(""), fee_amount: 
             updates.append("MEMBER_NAME = %s")
             params.append(name)
 
-        # If fee_amount is provided, we will add a new fee record for the member. We check if the member exists first to avoid adding fees to non-existent members.   
+        #Update member details if there are valid inputs, and track whether we actually updated anything to determine the response message later. 
         member_updated = False
         if updates:
             query = "UPDATE MEMBER SET " + ", ".join(updates) + " WHERE MEMBER_ID = %s"
